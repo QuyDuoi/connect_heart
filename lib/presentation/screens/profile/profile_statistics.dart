@@ -1,9 +1,11 @@
+import 'package:connect_heart/data/models/user.dart';
 import 'package:connect_heart/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProfileStatistics extends ConsumerStatefulWidget {
-  const ProfileStatistics({super.key});
+  final User? user;
+  const ProfileStatistics({super.key, this.user});
 
   @override
   ConsumerState<ProfileStatistics> createState() => _ProfileStatisticsState();
@@ -15,7 +17,7 @@ class _ProfileStatisticsState extends ConsumerState<ProfileStatistics> {
   @override
   void initState() {
     super.initState();
-    statisticsFuture = AuthService().fetchProfileStatistics(); 
+    statisticsFuture = AuthService().fetchProfileStatistics();
   }
 
   @override
@@ -30,9 +32,14 @@ class _ProfileStatisticsState extends ConsumerState<ProfileStatistics> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatBox('0', 'Sự kiện', Colors.blue.shade200),
-                _buildStatBox('0', 'Bài viết', Colors.amber.shade200),
-                _buildStatBox('0', 'Lượt thích', Colors.amber.shade300),
+                if (widget.user?.role == 'Tình nguyện viên') ...[
+                  _buildStatBox('0', 'Bài viết', Colors.amber.shade200),
+                  _buildStatBox('0', 'Lượt thích', Colors.amber.shade300),
+                ] else ...[
+                  _buildStatBox('0', 'Sự kiện', Colors.blue.shade200),
+                  _buildStatBox('0', 'Bài viết', Colors.amber.shade200),
+                  _buildStatBox('0', 'Lượt thích', Colors.amber.shade300),
+                ],
               ],
             );
           } else if (snapshot.hasError) {
@@ -43,13 +50,22 @@ class _ProfileStatisticsState extends ConsumerState<ProfileStatistics> {
 
           final stats = snapshot.data!;
           return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatBox(stats['total_events'].toString(), 'Sự kiện', Colors.blue.shade200),
-              _buildStatBox(stats['total_blogs'].toString(), 'Bài viết', Colors.amber.shade200),
-              _buildStatBox(stats['total_likes'].toString(), 'Lượt thích', Colors.amber.shade300),
-            ],
-          );
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                if (widget.user?.role == 'Tình nguyện viên') ...[
+                  _buildStatBox(stats['total_blogs'].toString(), 'Bài viết',
+                      Colors.amber.shade200),
+                  _buildStatBox(stats['total_likes'].toString(), 'Lượt thích',
+                      Colors.amber.shade300),
+                ] else ...[
+                  _buildStatBox(stats['total_events'].toString(), 'Sự kiện',
+                      Colors.blue.shade200),
+                  _buildStatBox(stats['total_blogs'].toString(), 'Bài viết',
+                      Colors.amber.shade200),
+                  _buildStatBox(stats['total_likes'].toString(), 'Lượt thích',
+                      Colors.amber.shade300),
+                ],
+              ]);
         },
       ),
     );

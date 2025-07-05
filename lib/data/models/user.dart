@@ -10,6 +10,9 @@ class User {
   final String? address;
   String? imageProfile;
   String? role;
+  final String? status;
+  final String? completionStatus;
+  final String? statusLabel;
 
   User({
     required this.id,
@@ -23,22 +26,27 @@ class User {
     this.address,
     this.imageProfile,
     this.role,
+    this.status,
+    this.completionStatus,
+    this.statusLabel,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      userName: json['user_name'],
-      firstName: json['first_name'],
-      lastName: json['last_name'],
-      email: json['email'],
-      phoneNumber: json['phone_number'],
-      dateOfBirth: json['date_of_birth'],
-      gender: json['gender'],
-      address: json['address'],
-      imageProfile: json['image_profile'],
-      role: json['role'],
-    );
+        id: json['id'],
+        userName: json['user_name'],
+        firstName: json['first_name'],
+        lastName: json['last_name'],
+        email: json['email'],
+        phoneNumber: json['phone_number'],
+        dateOfBirth: json['date_of_birth'],
+        gender: json['gender'],
+        address: json['address'],
+        imageProfile: json['image_profile'],
+        role: json['role'],
+        status: json['status'],
+        completionStatus: json['completionStatus'],
+        statusLabel: json['statusLabel']);
   }
 
   Map<String, dynamic> toJson() {
@@ -54,6 +62,9 @@ class User {
       'address': address,
       'image_profile': imageProfile,
       'role': role,
+      'status': status,
+      'completionStatus': completionStatus,
+      'statusLabel': statusLabel
     };
   }
 }

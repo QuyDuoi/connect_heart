@@ -220,6 +220,7 @@ class BlogService {
   }) async {
     try {
       final formData = FormData.fromMap({
+        'status': 1,
         'content': content,
         'files[]': await Future.wait(images.map(
           (image) async => await MultipartFile.fromFile(image.path),

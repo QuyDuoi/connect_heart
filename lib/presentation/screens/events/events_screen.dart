@@ -108,7 +108,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
 
                     // Title
@@ -190,6 +190,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                     is_wishlist: event.is_wishlist,
                                     is_registration: event.is_registration,
                                     userRole: user?.role ?? 'Tình nguyện viên',
+                                    onJoined: () {
+                                      setState(() {
+                                        _loadEventsByCategory();
+                                      });
+                                    },
                                   ),
                                 )
                                 .toList(),

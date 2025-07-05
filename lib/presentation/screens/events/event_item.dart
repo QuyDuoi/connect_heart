@@ -28,6 +28,7 @@ class EventItem extends ConsumerStatefulWidget {
   final bool isMyEvent;
   final Event? event;
   final String userRole;
+  final VoidCallback? onJoined;
 
   EventItem({
     super.key,
@@ -50,6 +51,7 @@ class EventItem extends ConsumerStatefulWidget {
     required this.isMyEvent,
     required this.event,
     required this.userRole,
+    this.onJoined,
   });
 
   @override
@@ -85,6 +87,7 @@ class _EventItemState extends ConsumerState<EventItem> {
         widget.is_registration = true;
         // widget.event.registrationsCount++;
       });
+      widget.onJoined?.call();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content:
               Text('Thông tin đăng ký đã được gửi, vui lòng chờ xác nhận.')));

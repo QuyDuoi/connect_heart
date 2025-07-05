@@ -55,40 +55,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ProfileHeader(), // ProfileHeader
               ProfileInfo(user: user), // ProfileInfo
               const SizedBox(height: 14),
-              const ProfileStatistics(), // ProfileStatistics
+              ProfileStatistics(user: user), // ProfileStatistics
               const SizedBox(height: 14),
 
-              // TabBar
-              TabBar(
-                indicatorWeight: 3, // Thickness of the indicator line
-                indicatorColor: Colors.blue,
-                indicatorSize: TabBarIndicatorSize.tab, // Indicator size
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                tabs: const [
-                  Tab(text: 'Danh sách bài viết'),
-                  Tab(text: 'Danh sách sự kiện'),
-                ],
-              ),
-
-              // TabBarView
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    blogsAsyncValue.when(
-                      data: (blogs) => MyBlogList(blogs: blogs),
-                      loading: () => const ShimmerListLoader(),
-                      error: (error, stackTrace) => Center(child: Text('Lỗi: $error')),
-                    ),
-                    eventsAsyncValue.when(
-                      data: (events) => MyEventList(events: events),
-                      loading: () => const ShimmerListLoader(),
-                      error: (error, stackTrace) => Center(child: Text('Lỗi: $error')),
-                    ),
+              // Nếu là tổ chức thiện nguyện thì show TabBar
+              if (user?.role == 'Tổ chức thiện nguyện')
+                TabBar(
+                  indicatorWeight: 3,
+                  indicatorColor: Colors.blue,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.grey,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                  tabs: const [
+                    Tab(text: 'Danh sách bài viết'),
+                    Tab(text: 'Danh sách sự kiện'),
                   ],
                 ),
-              ),
+
+              // Nội dung chính
+              Expanded(
+                child: user?.role == 'Tổ chức thiện nguyện'
+                    // với 2 Tab
+                    ? TabBarView(
+                        children: [
+                          // Tab 1: Blogs
+                          blogsAsyncValue.when(
+                            data: (blogs) => MyBlogList(blogs: blogs),
+                            loading: () => const ShimmerListLoader(),
+                            error: (e, st) => Center(child: Text('Lỗi: $e')),
+                          ),
+                          // Tab 2: Events
+                          eventsAsyncValue.when(
+                            data: (events) => MyEventList(events: events),
+                            loading: () => const ShimmerListLoader(),
+                            error: (e, st) => Center(child: Text('Lỗi: $e')),
+                          ),
+                        ],
+                      )
+
+                    // chỉ Blog list đối với user thường
+                    : blogsAsyncValue.when(
+                        data: (blogs) => MyBlogList(blogs: blogs),
+                        loading: () => const ShimmerListLoader(),
+                        error: (e, st) => Center(child: Text('Lỗi: $e')),
+                      ),
+              )
             ],
           ),
         ),

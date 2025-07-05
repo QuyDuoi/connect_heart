@@ -9,6 +9,30 @@ class MyBlogList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (blogs.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(
+                Icons.article_outlined,
+                size: 48,
+                color: Colors.grey,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Chưa có bài viết nào được tạo.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: blogs.length,

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:connect_heart/data/models/comment.dart';
+import 'package:connect_heart/data/models/user.dart';
 import 'package:dio/dio.dart';
 import 'package:connect_heart/data/models/event.dart';
 import 'package:connect_heart/data/services/auth_service.dart';
@@ -505,6 +506,35 @@ class EventService {
         throw Exception(
             'Lỗi khi cập nhật sự kiện: ${resp.data['message'] ?? resp.statusMessage}');
       }
+    }
+  }
+
+  /// Lấy danh sách user đã đăng ký event
+  Future<List<User>> fetchRegisteredUsers(int eventId) async {
+    try {
+      final resp = await dio.get(
+        '$baseUrl/list-user-registration/$eventId',
+        options: Options(
+          headers: {'Accept': 'application/json'},
+        ),
+      );
+
+      if (resp.statusCode != 200) {
+        throw Exception('Lỗi tải danh sách đăng ký: HTTP ${resp.statusCode}');
+      }
+
+      final data = resp.data;
+      // Giả sử API trả về mảng users trong data['response']
+      if (data == null || data['response'] == null || data['response'] is! List) {
+        throw Exception('Dữ liệu đăng ký không hợp lệ');
+      }
+
+      return (data['response'] as List<dynamic>)
+          .map((u) => User.fromJson(u as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('❌ Lỗi fetchRegisteredUsers: $e');
+      rethrow;
     }
   }
 }
