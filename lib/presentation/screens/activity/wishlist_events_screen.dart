@@ -71,7 +71,7 @@ class _WishlistEventsScreenState extends ConsumerState<WishlistEventsScreen> {
                     commentsCount: e.commentsCount,
                     registrationsCount: e.registrationsCount,
                     is_wishlist: e.is_wishlist,
-                    is_registered: e.is_registered,
+                    is_registration: e.is_registration,
                     description: e.description,
                     isMyEvent: false,
                     event: e,

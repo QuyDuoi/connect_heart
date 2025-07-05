@@ -5,6 +5,7 @@ import 'package:connect_heart/presentation/screens/login/login_screen.dart';
 import 'package:connect_heart/presentation/screens/settings/change_password_screen.dart';
 import 'package:connect_heart/presentation/screens/settings/update_profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -22,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Ngăn không cho quay lại màn hình trước
+            // Quay về màn hình gốc, không giữ route cũ
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
         ),
@@ -91,15 +92,18 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           _buildItem(
-              icon: Icons.event_available_outlined,
-              text: 'Sự kiện đã đăng ký',
-              style: baseTextStyle),
+            icon: Icons.event_available_outlined,
+            text: 'Sự kiện đã đăng ký',
+            style: baseTextStyle,
+            onTap: () {
+              // TODO: điều hướng đến screen sự kiện đã đăng ký
+            },
+          ),
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ElevatedButton(
               onPressed: () {
-                // Hiển thị modal đăng xuất
                 _showLogoutConfirmationDialog(context);
               },
               style: ElevatedButton.styleFrom(
@@ -109,7 +113,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               child: Text('Đăng xuất', style: baseTextStyle),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -129,46 +133,113 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // Confirmation Dialog for Logout
-  Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
+  Future<void> _showLogoutConfirmationDialog(BuildContext parentContext) {
     return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Xác nhận đăng xuất'),
-          content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Hủy bỏ'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
             ),
-            TextButton(
-              child: const Text('Đăng xuất'),
-              onPressed: () async {
-                // Gọi hàm đăng xuất
-                final result = await AuthService.logout();
-
-                result.fold(
-                  (error) => print('Lỗi đăng xuất: $error'),
-                  (_) {
-                    // Nếu đăng xuất thành công, chuyển tới màn hình đăng nhập
-                    Navigator.of(context).pop(); // Close the dialog first
-
-                    // Chờ cho đến khi frame được xây dựng xong, sau đó chuyển hướng
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      );
-                    });
-                  },
-                );
-              },
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon logout tròn nền hồng nhạt (giao diện code trên)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.logout, color: Colors.red, size: 32),
+                ),
+                const SizedBox(height: 16),
+                // Title
+                const Text(
+                  'Xác nhận đăng xuất',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Nội dung
+                Text(
+                  'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản không?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Buttons
+                Row(
+                  children: [
+                    // Hủy bỏ
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop(); // chỉ đóng dialog
+                        },
+                        child: const Text(
+                          'Hủy bỏ',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Đăng xuất
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () async {
+                          // 1) Đóng dialog
+                          Navigator.of(dialogContext).pop();
+                          // 2) Gọi API logout
+                          final result = await AuthService.logout();
+                          result.fold(
+                            (error) {
+                              debugPrint('Lỗi đăng xuất: $error');
+                              // TODO: show SnackBar nếu cần
+                            },
+                            (_) {
+                              // 3) Dùng GoRouter để quay về /login, xóa sạch stack
+                              parentContext.go('/login');
+                            },
+                          );
+                        },
+                        child: const Text(
+                          'Đăng xuất',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );

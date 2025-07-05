@@ -3,29 +3,96 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_heart/providers/user_provider.dart';
 
-class EventHeader extends ConsumerWidget {
-  const EventHeader({super.key});
+class EventHeader extends ConsumerStatefulWidget {
+  final void Function(String query) onSearch;
+
+  const EventHeader({super.key, required this.onSearch});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EventHeader> createState() => _EventHeaderState();
+}
+
+class _EventHeaderState extends ConsumerState<EventHeader>
+    with TickerProviderStateMixin {
+  bool _showSearch = false;
+  final TextEditingController _controller = TextEditingController();
+
+  void _toggleSearch() {
+    setState(() => _showSearch = !_showSearch);
+    if (!_showSearch) {
+      _controller.clear();
+      widget.onSearch('');
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const UserGreeting(),
-          const Spacer(),
-          Row(
-            children: const [
-              Icon(Icons.search, size: 24),
-              SizedBox(width: 16),
-              Icon(Icons.filter_alt_outlined, size: 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header chính
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const UserGreeting(),
+              const Spacer(),
+              IconButton(
+                icon: Icon(_showSearch ? Icons.close : Icons.search),
+                onPressed: _toggleSearch,
+              ),
+              IconButton(
+                icon: const Icon(Icons.filter_alt_outlined),
+                onPressed: () {
+                  // TODO: xử lý filter
+                },
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+
+        // AnimatedSize để hiển thị/ẩn TextField
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: _showSearch
+              ? Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm sự kiện...',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          widget.onSearch(_controller.text.trim());
+                        },
+                      ),
+                    ),
+                    onSubmitted: (query) {
+                      widget.onSearch(query.trim());
+                    },
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }

@@ -29,7 +29,36 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
   @override
   void initState() {
     super.initState();
-    _futureEvents = EventService().fetchEvents();
+    _loadEventsByCategory();
+  }
+
+  void _loadEventsByCategory() {
+    switch (selectedCategory) {
+      case 1:
+        _futureEvents = EventService().fetchHighlightedEvents();
+        break;
+      case 2:
+        _futureEvents = EventService().fetchCommingEvents();
+        break;
+      case 3:
+        _futureEvents = EventService().fetchNewestEvents();
+        break;
+      case 0:
+      default:
+        _futureEvents = EventService().fetchEvents();
+    }
+  }
+
+  void _searchEvents(String query) {
+    if (query.isEmpty) {
+      // nếu xóa hết text, về lại fetch bình thường
+      _loadEventsByCategory();
+      setState(() {});
+    } else {
+      setState(() {
+        _futureEvents = EventService().searchEvents(query);
+      });
+    }
   }
 
   @override
@@ -42,7 +71,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const EventHeader(),
+              EventHeader(onSearch: _searchEvents),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -63,6 +92,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               onSelected: (_) {
                                 setState(() {
                                   selectedCategory = index;
+                                  _loadEventsByCategory();
                                 });
                               },
                               selectedColor: Colors.blue,
@@ -78,6 +108,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         ),
                       ),
                     ),
+                    
                     const SizedBox(height: 16),
 
                     // Title
@@ -90,24 +121,24 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         if (user?.role == 'Tổ chức thiện nguyện')
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const EventFormScreen(),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const EventFormScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Thêm mới',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
-                            );
-                          },
-                          child: const Text(
-                            'Thêm mới',
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ),
                       ],
                     ),
 
@@ -157,7 +188,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                     isMyEvent: false,
                                     event: event,
                                     is_wishlist: event.is_wishlist,
-                                    is_registered: event.is_registered,
+                                    is_registration: event.is_registration,
                                     userRole: user?.role ?? 'Tình nguyện viên',
                                   ),
                                 )

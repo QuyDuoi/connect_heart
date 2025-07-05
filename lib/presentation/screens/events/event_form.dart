@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:connect_heart/presentation/screens/events/event_image_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_heart/data/models/event.dart';
@@ -8,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 class EventFormScreen extends StatefulWidget {
   final bool isEdit;
-  final Event? existingEvent; 
+  final Event? existingEvent;
 
   const EventFormScreen({super.key, this.isEdit = false, this.existingEvent});
 
@@ -21,6 +20,8 @@ class _EventFormScreenState extends State<EventFormScreen> {
   final titleCtrl = TextEditingController();
   final descriptionCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
+  static const String _defaultCertUrl =
+      'https://uploadimage2025connectheart.s3.ap-southeast-2.amazonaws.com/large-271.jpg';
 
   DateTime? startDate;
   DateTime? endDate;
@@ -33,11 +34,11 @@ class _EventFormScreenState extends State<EventFormScreen> {
   final List<Map<String, dynamic>> categories = [
     {'id': 1, 'name': 'Y tế'},
     {'id': 2, 'name': 'Giáo dục'},
-    {'id': 3, 'name': 'Cứu hộ'},
-    {'id': 4, 'name': 'Khí hậu'},
+    {'id': 5, 'name': 'Khí hậu'},
+    {'id': 4, 'name': 'Cứu hộ'},
   ];
 
-  final List<String> eventTypes = ['Offline', 'Online'];
+  final List<String> eventTypes = ['offline', 'online'];
 
   final baseTextStyle = const TextStyle(fontFamily: 'Merriweather');
 
@@ -155,15 +156,23 @@ class _EventFormScreenState extends State<EventFormScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<int>(
         value: categoryId,
-        style: baseTextStyle,
+        style: baseTextStyle.copyWith(color: Colors.black), // ← bắt buộc
+        dropdownColor: Colors.white, // ← đảm bảo nền trắng
         decoration: InputDecoration(
           labelText: 'Danh mục *',
-          labelStyle: baseTextStyle,
+          labelStyle: baseTextStyle.copyWith(color: Colors.black),
           border: const OutlineInputBorder(),
         ),
-        items: categories
-            .map((e) => DropdownMenuItem<int>(value: e['id'], child: Text(e['name'])))
-            .toList(),
+        items: categories.map((e) {
+          return DropdownMenuItem<int>(
+            value: e['id'] as int,
+            child: Text(
+              e['name'] as String,
+              style:
+                  const TextStyle(color: Colors.black), // ← hoặc override ở đây
+            ),
+          );
+        }).toList(),
         onChanged: (val) => setState(() => categoryId = val),
         validator: (val) => val == null ? 'Vui lòng chọn danh mục' : null,
       ),
@@ -181,12 +190,17 @@ class _EventFormScreenState extends State<EventFormScreen> {
           labelStyle: baseTextStyle,
           border: const OutlineInputBorder(),
         ),
-        items: eventTypes
-            .map((type) => DropdownMenuItem(
-                  value: type,
-                  child: Text(type, style: baseTextStyle.copyWith(color: Colors.black)),
-                ))
-            .toList(),
+        items: eventTypes.map((type) {
+          // Capitalize chỉ để hiển thị
+          final label = type[0].toUpperCase() + type.substring(1);
+          return DropdownMenuItem<String>(
+            value: type, // lowercase giá trị giữ nguyên
+            child: Text(
+              label,
+              style: baseTextStyle.copyWith(color: Colors.black),
+            ),
+          );
+        }).toList(),
         onChanged: (val) => setState(() => eventType = val),
         validator: (val) => val == null ? 'Vui lòng chọn hình thức' : null,
       ),
@@ -204,25 +218,29 @@ class _EventFormScreenState extends State<EventFormScreen> {
           color: Colors.grey[300],
           borderRadius: BorderRadius.circular(8),
         ),
-        child: certificateImage == null
-            ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, size: 28),
-                    SizedBox(height: 8),
-                    Text('Thêm ảnh chứng chỉ'),
-                  ],
-                ),
-              )
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: certificateImage != null
+              // nếu đã pick, hiển thị file local
+              ? Image.file(
                   File(certificateImage!.path),
                   fit: BoxFit.cover,
                   width: double.infinity,
+                )
+              // nếu chưa pick, hiển thị mặc định từ network
+              : Image.network(
+                  _defaultCertUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  loadingBuilder: (ctx, child, progress) {
+                    if (progress == null) return child;
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                  errorBuilder: (ctx, err, stack) {
+                    return const Center(child: Icon(Icons.broken_image));
+                  },
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -264,17 +282,17 @@ class _EventFormScreenState extends State<EventFormScreen> {
                 _buildDropdownType(),
                 CheckboxListTile(
                   value: hasCertificate,
-                  title: Text('Sự kiện có chứng chỉ không?', style: baseTextStyle),
+                  title:
+                      Text('Sự kiện có chứng chỉ không?', style: baseTextStyle),
                   onChanged: (val) =>
                       setState(() => hasCertificate = val ?? false),
                 ),
                 if (hasCertificate) _buildImagePicker(),
                 ElevatedButton(
                   onPressed: () async {
-                    // 1. Validate form
                     if (!_formKey.currentState!.validate()) return;
 
-                    // 2. Hiện dialog loading (override navigator chính, rootNavigator: true)
+                    // show loading
                     showDialog(
                       context: context,
                       barrierDismissible: false,
@@ -283,34 +301,55 @@ class _EventFormScreenState extends State<EventFormScreen> {
                     );
 
                     try {
-                      // 1) Tạo sự kiện, lấy event mới
-                      final newEvent = await EventService().createEvent(
-                        title: titleCtrl.text.trim(),
-                        description: descriptionCtrl.text.trim(),
-                        location: addressCtrl.text.trim(),
-                        dateStart: startDate!,
-                        dateEnd: endDate,
-                        categoryId: categoryId!,
-                        type: eventType!,
-                        certificateIsTrue: hasCertificate,
-                        certificateFile:
-                            hasCertificate && certificateImage != null
-                                ? File(certificateImage!.path)
-                                : null,
-                      );
-
-                      // 2) Đóng dialog loading
-                      Navigator.of(context, rootNavigator: true).pop();
-
-                      // 3) Chuyển sang màn thêm ảnh, truyền newEvent
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => EventImageScreen(event: newEvent),
-                      ));
+                      if (widget.isEdit) {
+                        // –––––– NẾU LÀ EDIT ––––––
+                        // gọi API cập nhật (giả sử bạn có updateEvent trên service)
+                        await EventService().updateEvent(
+                          eventId: widget.existingEvent!.id,
+                          title: titleCtrl.text.trim(),
+                          description: descriptionCtrl.text.trim(),
+                          location: addressCtrl.text.trim(),
+                          dateStart: startDate!,
+                          dateEnd: endDate,
+                          categoryId: categoryId!,
+                          type: eventType!,
+                          certificateIsTrue: hasCertificate,
+                          certificateFile:
+                              hasCertificate && certificateImage != null
+                                  ? File(certificateImage!.path)
+                                  : null,
+                        );
+                        Navigator.of(context, rootNavigator: true)
+                            .pop(); // tắt loader
+                        Navigator.of(context).pop(
+                            true); // quay về màn trước, trả về true để refresh nếu cần
+                      } else {
+                        // –––––– NẾU LÀ CREATE ––––––
+                        final newEvent = await EventService().createEvent(
+                          title: titleCtrl.text.trim(),
+                          description: descriptionCtrl.text.trim(),
+                          location: addressCtrl.text.trim(),
+                          dateStart: startDate!,
+                          dateEnd: endDate,
+                          categoryId: categoryId!,
+                          type: eventType!,
+                          certificateIsTrue: hasCertificate,
+                          certificateFile:
+                              hasCertificate && certificateImage != null
+                                  ? File(certificateImage!.path)
+                                  : null,
+                        );
+                        Navigator.of(context, rootNavigator: true)
+                            .pop(); // tắt loader
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => EventImageScreen(event: newEvent),
+                        ));
+                      }
                     } catch (e) {
-                      Navigator.of(context, rootNavigator: true).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('❌ Lỗi: $e')),
-                      );
+                      Navigator.of(context, rootNavigator: true)
+                          .pop(); // tắt loader
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text('❌ Lỗi: $e')));
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -321,7 +360,10 @@ class _EventFormScreenState extends State<EventFormScreen> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  child: Text('Tiếp tục', style: baseTextStyle),
+                  child: Text(
+                    widget.isEdit ? 'Lưu thông tin' : 'Tiếp tục',
+                    style: baseTextStyle,
+                  ),
                 ),
               ],
             ),

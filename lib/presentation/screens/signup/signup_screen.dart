@@ -21,6 +21,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final confirmCtrl = TextEditingController();
   String? gender;
   DateTime? dob;
+  bool _isVolunteer = true;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -35,6 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
       gender: gender,
       dob: dob,
       password: passwordCtrl.text,
+      isVolunteer: _isVolunteer,
     );
 
     result.fold(
@@ -114,11 +116,11 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
                 _buildFieldWithCounter('Tên tài khoản', usernameCtrl,
-                    hint: 'E.g. dahi111'),
+                    hint: 'Biệt danh của bạn'),
                 _buildFieldWithCounter('Họ', firstNameCtrl,
-                    hint: 'Enter your first name'),
+                    hint: 'Nhập họ của bạn'),
                 _buildFieldWithCounter('Tên', lastNameCtrl,
-                    hint: 'Enter your last name'),
+                    hint: 'Nhập tên của bạn'),
                 _buildFieldWithCounter('Email', emailCtrl,
                     keyboardType: TextInputType.emailAddress,
                     hint: 'johndoe123@gmail.com'),
@@ -173,7 +175,25 @@ class _SignupScreenState extends State<SignupScreen> {
                 _buildField('Địa chỉ', addressCtrl),
                 _buildField('Mật khẩu', passwordCtrl, obscure: true),
                 _buildField('Xác nhận mật khẩu', confirmCtrl, obscure: true),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
+                const Text('Loại tài khoản',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                RadioListTile<bool>(
+                  title: const Text('Tình nguyện viên'),
+                  value: true,
+                  groupValue: _isVolunteer,
+                  onChanged: (v) => setState(() => _isVolunteer = v!),
+                  contentPadding: EdgeInsets.zero, // loại bỏ padding mặc định
+                  dense: true, // làm nhỏ lại dòng
+                ),
+                RadioListTile<bool>(
+                  title: const Text('Tổ chức thiện nguyện'),
+                  value: false,
+                  groupValue: _isVolunteer,
+                  onChanged: (v) => setState(() => _isVolunteer = v!),
+                  contentPadding: EdgeInsets.zero, // loại bỏ padding mặc định
+                  dense: true, // làm nhỏ lại dòng
+                ),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
@@ -196,6 +216,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   child: const Text('Đăng ký'),
                 ),
+                const SizedBox(height: 12)
               ],
             ),
           ),

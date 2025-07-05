@@ -4,7 +4,7 @@ import 'package:connect_heart/presentation/screens/blogs/blog_form.dart';
 import 'package:connect_heart/presentation/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_heart/presentation/screens/events/comment_bottom_sheet.dart';
+import 'package:connect_heart/presentation/screens/comment/comment_bottom_sheet.dart';
 import 'package:connect_heart/presentation/screens/events/full_screen_image.dart';
 import 'package:connect_heart/providers/user_provider.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -320,30 +320,119 @@ class _BlogItemState extends ConsumerState<BlogItem> {
     BuildContext parentContext,
     int blogId,
   ) async {
-    final bool? confirmed = await confirm(
-      parentContext,
-      title: Text('Xác nhận xóa bài viết'),
-      content: Text('Bạn có chắc chắn muốn xóa bài viết này không?'),
-      textCancel: Text('Hủy bỏ'),
-      textOK: Text('Xóa bài viết'),
+    // Hiển thị dialog custom
+    return showDialog<void>(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon delete tròn nền đỏ nhạt
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.delete_forever,
+                      color: Colors.red, size: 32),
+                ),
+                const SizedBox(height: 16),
+                // Tiêu đề
+                const Text(
+                  'Xác nhận xóa bài viết',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Nội dung
+                Text(
+                  'Bạn có chắc chắn muốn xóa bài viết này không?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Hai nút Hủy / Xóa
+                Row(
+                  children: [
+                    // Hủy bỏ
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop(); // chỉ đóng dialog
+                        },
+                        child: const Text(
+                          'Hủy bỏ',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Xóa bài viết
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () async {
+                          // 1) Đóng dialog
+                          Navigator.of(dialogContext).pop();
+                          // 2) Gọi API xóa
+                          try {
+                            await BlogService().deleteBlog(blogId);
+                            // 3) Refresh lại danh sách
+                            ref.refresh(userBlogsProvider);
+                            // 4) Show SnackBar
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              const SnackBar(
+                                  content: Text('🎉 Xóa bài viết thành công')),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              SnackBar(content: Text('Lỗi khi xóa: $e')),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          'Xóa bài viết',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-
-    if (confirmed == true) {
-      try {
-        await BlogService().deleteBlog(blogId);
-
-        // 1) Refresh lại danh sách
-        ref.refresh(userBlogsProvider);
-
-        // 2) Show SnackBar trên Scaffold của ProfileScreen
-        ScaffoldMessenger.of(parentContext).showSnackBar(
-          const SnackBar(content: Text('🎉 Xóa bài viết thành công')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(parentContext).showSnackBar(
-          SnackBar(content: Text('Lỗi khi xóa: $e')),
-        );
-      }
-    }
   }
 }

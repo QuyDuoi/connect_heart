@@ -147,7 +147,7 @@ class ProfileInfo extends ConsumerWidget {
           '${user?.lastName} ${user?.firstName ?? ''}',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const Text('Tổ chức từ thiện'),
+        Text('${user?.role ?? ''}'),
       ],
     );
   }

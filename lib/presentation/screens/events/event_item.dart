@@ -3,7 +3,7 @@ import 'package:connect_heart/presentation/screens/events/event_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_heart/data/services/event_service.dart';
-import 'package:connect_heart/presentation/screens/events/comment_bottom_sheet.dart';
+import 'package:connect_heart/presentation/screens/comment/comment_bottom_sheet.dart';
 import 'package:connect_heart/presentation/screens/events/full_screen_image.dart';
 import 'package:connect_heart/providers/user_provider.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -23,7 +23,7 @@ class EventItem extends ConsumerStatefulWidget {
   int commentsCount;
   final int registrationsCount;
   final bool is_wishlist;
-  final bool is_registered;
+  bool is_registration;
   final String description;
   final bool isMyEvent;
   final Event? event;
@@ -45,7 +45,7 @@ class EventItem extends ConsumerStatefulWidget {
     required this.commentsCount,
     required this.registrationsCount,
     required this.is_wishlist,
-    required this.is_registered,
+    required this.is_registration,
     required this.description,
     required this.isMyEvent,
     required this.event,
@@ -62,11 +62,38 @@ class _EventItemState extends ConsumerState<EventItem> {
   int tappedIndex = -1;
   final EventService _eventService = EventService();
   bool _isDescExpanded = false;
+  bool _isRegistering = false;
 
   @override
   void initState() {
     super.initState();
     isLiked = widget.is_wishlist;
+  }
+
+  Future<void> _handleJoin() async {
+    if (widget.is_registration) {
+      // Already registered, call API cancel or show message
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng đợi BTC xác nhận đăng ký')));
+      return;
+    }
+    if (_isRegistering) return;
+    setState(() => _isRegistering = true);
+    try {
+      await _eventService.thamGiaSuKien(widget.id);
+      setState(() {
+        widget.is_registration = true;
+        // widget.event.registrationsCount++;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Thông tin đăng ký đã được gửi, vui lòng chờ xác nhận.')));
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Lỗi khi đăng ký: \$e')));
+    } finally {
+      setState(() => _isRegistering = false);
+    }
   }
 
   @override
@@ -191,7 +218,7 @@ class _EventItemState extends ConsumerState<EventItem> {
                       flex:
                           3, // Adjust the flex to make participants count occupy 40% of the space
                       child: Text(
-                        '${widget.participants} người tham gia',
+                        '${widget.participants} người đăng ký',
                         style: const TextStyle(color: Colors.green),
                         overflow: TextOverflow
                             .ellipsis, // Optional: add ellipsis here if needed
@@ -327,40 +354,26 @@ class _EventItemState extends ConsumerState<EventItem> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-
-                    // 📤 Share
-                    // GestureDetector(
-                    //   onTapDown: (_) => setState(() => tappedIndex = 2),
-                    //   onTapUp: (_) => setState(() => tappedIndex = -1),
-                    //   onTapCancel: () => setState(() => tappedIndex = -1),
-                    //   child: Opacity(
-                    //     opacity: tappedIndex == 2 ? 0.5 : 1.0,
-                    //     child: Row(
-                    //       children: [
-                    //         const Icon(Icons.send, size: 16),
-                    //         const SizedBox(width: 4),
-                    //         Text(widget.registrationsCount.toString()),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
                     const Spacer(),
 
                     // Tham gia button
                     ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Hiện chưa thể tham gia sự kiện này')),
-                        );
-                      },
+                      onPressed: _handleJoin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         minimumSize: const Size(80, 32),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Text('Tham gia'),
+                      child: Text(
+                        widget.is_registration ? 'Đã đăng ký' : 'Tham gia',
+                        style: TextStyle(
+                          color: widget.is_registration
+                              ? Colors.black
+                              : Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -418,33 +431,126 @@ class _EventItemState extends ConsumerState<EventItem> {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, int eventId) async {
-    // Sử dụng confirm_dialog với tham số chính xác
-    final bool? userConfirmed = await confirm(
-      context,
-      title: Text('Xác nhận xóa sự kiện'),
-      content: Text('Bạn có chắc chắn muốn xóa sự kiện này không?'),
-      textCancel: Text('Hủy bỏ'),
-      textOK: Text('Xóa sự kiện'),
+    BuildContext parentContext,
+    int eventId,
+  ) {
+    return showDialog<void>(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon delete
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.delete_forever,
+                    color: Colors.red,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Tiêu đề
+                const Text(
+                  'Xác nhận xóa sự kiện',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Nội dung
+                Text(
+                  'Bạn có chắc chắn muốn xóa sự kiện này không?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Nút Hủy / Xóa
+                Row(
+                  children: [
+                    // Hủy bỏ
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: const Text(
+                          'Hủy bỏ',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Xóa sự kiện
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () async {
+                          // 1) Đóng dialog
+                          Navigator.of(dialogContext).pop();
+                          // 2) Gọi API xóa sự kiện
+                          try {
+                            await EventService().deleteEvent(eventId);
+                            // 3) Show SnackBar
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              const SnackBar(
+                                content: Text('🎉 Sự kiện đã được xóa'),
+                              ),
+                            );
+                            // 4) Nếu bạn dùng Riverpod / Provider, refresh lại danh sách ở đây
+                            //    ref.read(eventsProvider.notifier).refresh();
+                          } catch (e) {
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              SnackBar(content: Text('Lỗi khi xóa: $e')),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          'Xóa sự kiện',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-
-    // Kiểm tra nếu người dùng xác nhận
-    if (userConfirmed == true) {
-      // Nếu xác nhận xóa sự kiện
-      try {
-        await EventService().deleteEvent(eventId); // Xóa sự kiện
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sự kiện đã được xóa')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
-        );
-      }
-    } else {
-      // Nếu người dùng hủy bỏ
-      print('User cancelled event deletion');
-    }
   }
 
   Widget _buildDescription() {

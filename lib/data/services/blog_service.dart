@@ -163,13 +163,14 @@ class BlogService {
 
   /// Thêm bình luận vào blog
   Future<void> createCommentForBlog(
-      {required int blogId, required String content}) async {
+      {required int blogId, required String content, int? parent_id}) async {
     try {
       final response = await dio.post(
         _createCommentUrl,
         data: {
           'blog_id': blogId,
           'content': content,
+          if (parent_id != null) 'parent_id': parent_id,
         },
         options: Options(
           headers: {'Accept': 'application/json'},

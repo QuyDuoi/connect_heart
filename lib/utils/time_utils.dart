@@ -11,6 +11,12 @@ String formatTimeAgo(DateTime time) {
   if (diff.inHours < 1) {
     return '${diff.inMinutes} phút trước';
   }
+  if (diff.inDays < 1) {
+    return '${diff.inHours} giờ trước';
+  }
+  if (diff.inDays < 7) {
+    return '${diff.inDays} ngày trước';
+  }
 
   // Định nghĩa helper để format giờ phút
   String _hourMinute(DateTime dt) {
@@ -19,36 +25,7 @@ String formatTimeAgo(DateTime time) {
     return '$h:$m';
   }
 
-  // Cùng ngày
-  if (time.year == now.year && time.month == now.month && time.day == now.day) {
-    return 'Hôm nay ${_hourMinute(time)}';
-  }
-
-  // Hôm qua
-  final yesterday = now.subtract(const Duration(days: 1));
-  if (time.year == yesterday.year &&
-      time.month == yesterday.month &&
-      time.day == yesterday.day) {
-    return 'Hôm qua ${_hourMinute(time)}';
-  }
-
-  // Trong tuần (trong 7 ngày)
-  if (diff.inDays < 7) {
-    const weekdays = [
-      'Thứ Hai',
-      'Thứ Ba',
-      'Thứ Tư',
-      'Thứ Năm',
-      'Thứ Sáu',
-      'Thứ Bảy',
-      'Chủ Nhật',
-    ];
-    // DateTime.weekday: 1 = Mon, …, 7 = Sun
-    final wd = weekdays[time.weekday - 1];
-    return '$wd lúc ${_hourMinute(time)}';
-  }
-
-  // Ngoài phạm vi trên, hiện ngày tháng năm
+  // Ngoài 7 ngày, hiển thị dd/MM/yyyy và giờ
   final d = time.day.toString().padLeft(2, '0');
   final mo = time.month.toString().padLeft(2, '0');
   final y = time.year;

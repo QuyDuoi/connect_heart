@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeMenu extends StatelessWidget {
   const HomeMenu({super.key});
@@ -23,7 +24,7 @@ class HomeMenu extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  // TODO: Navigation xử lý sau
+                  context.go('/events');
                 },
                 borderRadius: BorderRadius.circular(12),
                 splashColor: Colors.blue.withOpacity(0.2),

@@ -44,6 +44,7 @@ class AuthService {
     required String? gender,
     required DateTime? dob,
     required String password,
+    required bool isVolunteer,
   }) async {
     final data = {
       "user_name": username,
@@ -60,7 +61,7 @@ class AuthService {
       "address": address,
       "password": password,
       "password_confirmation": password,
-      "roles": [4],
+      "roles": isVolunteer ? [4] : [2],
     };
 
     try {

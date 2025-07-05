@@ -35,7 +35,7 @@ class MyEventList extends ConsumerWidget {
           isMyEvent: true,
           event: event,
           is_wishlist: event.is_wishlist,
-          is_registered: event.is_registered,
+          is_registration: event.is_registration,
           userRole: user?.role ?? 'Tình nguyện viên',
         );
       },

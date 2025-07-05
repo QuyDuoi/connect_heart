@@ -17,7 +17,7 @@ class Event {
   final int commentsCount;
   final int registrationsCount;
   final bool is_wishlist;
-  final bool is_registered;
+  final bool is_registration;
   final List<String> thumbnails; // List of image paths for thumbnails
   final Creator creator; // The creator of the event
   final Category? category; // Optional category field
@@ -44,7 +44,7 @@ class Event {
     required this.creator,
     required this.category,
     required this.is_wishlist,
-    required this.is_registered
+    required this.is_registration
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -90,7 +90,7 @@ class Event {
       status: json['status'] as String? ?? '',
       certificateIsTrue: json['certificate_is_true'] as bool? ?? false,
       is_wishlist: json['is_wishlist'] as bool? ?? false,
-      is_registered: json['is_registered'] as bool? ?? false,
+      is_registration: json['is_registration'] as bool? ?? false,
       certificateLink: json['certificate_link'] as String?,
       createdAt: json['created_at'] as String? ?? '',
       updatedAt: json['updated_at'] as String? ?? '',

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_heart/data/models/event.dart';
 import 'package:connect_heart/data/services/event_service.dart';
 import 'package:connect_heart/providers/user_provider.dart';
-import 'package:connect_heart/presentation/screens/events/comment_bottom_sheet.dart';
+import 'package:connect_heart/presentation/screens/comment/comment_bottom_sheet.dart';
 import 'package:connect_heart/presentation/screens/events/shimmer_loader.dart';
 
 class EventForYouSection extends StatefulWidget {

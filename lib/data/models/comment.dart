@@ -1,10 +1,11 @@
 class Comment {
   final int id;
-  final String content;
+  String content;
   final String userName;
   final String imageProfile;
   final DateTime createdAt;
   final List<Comment> children;
+  int likeCount;
 
   Comment({
     required this.id,
@@ -13,6 +14,7 @@ class Comment {
     required this.imageProfile,
     required this.createdAt,
     required this.children,
+    required this.likeCount,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Comment {
               ?.map((c) => Comment.fromJson(c as Map<String, dynamic>))
               .toList() ??
           [],
+      likeCount: json['like_count'] as int? ?? 0,
     );
   }
 }
