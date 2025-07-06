@@ -46,15 +46,25 @@ class _EventFormScreenState extends State<EventFormScreen> {
   void initState() {
     super.initState();
     if (widget.isEdit && widget.existingEvent != null) {
-      // Nếu là chỉnh sửa, điền dữ liệu của sự kiện vào các trường
-      final event = widget.existingEvent!;
-      titleCtrl.text = event.title;
-      descriptionCtrl.text = event.description;
-      addressCtrl.text = event.location;
-      startDate = DateTime.parse(event.dateStart);
-      endDate = event.dateEnd != null ? DateTime.parse(event.dateEnd!) : null;
-      categoryId = event.category?.id;
-      eventType = event.type;
+      final e = widget.existingEvent!;
+      titleCtrl.text = e.title;
+      descriptionCtrl.text = e.description;
+      addressCtrl.text = e.location;
+
+      // parse an toàn startDate
+      if (e.dateStart.isNotEmpty) {
+        startDate = DateTime.tryParse(e.dateStart);
+      }
+
+      // parse an toàn endDate (cả null và chuỗi rỗng)
+      if (e.dateEnd != null && e.dateEnd!.isNotEmpty) {
+        endDate = DateTime.tryParse(e.dateEnd!);
+      } else {
+        endDate = null;
+      }
+
+      categoryId = e.category?.id;
+      eventType = e.type;
     }
   }
 

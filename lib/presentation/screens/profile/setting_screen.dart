@@ -1,7 +1,7 @@
 import 'package:connect_heart/data/services/auth_service.dart';
+import 'package:connect_heart/presentation/screens/activity/registered_events_screen%20.dart';
 import 'package:connect_heart/presentation/screens/activity/wishlist_blogs_screen.dart';
 import 'package:connect_heart/presentation/screens/activity/wishlist_events_screen.dart';
-import 'package:connect_heart/presentation/screens/login/login_screen.dart';
 import 'package:connect_heart/presentation/screens/settings/change_password_screen.dart';
 import 'package:connect_heart/presentation/screens/settings/update_profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +96,10 @@ class SettingsScreen extends StatelessWidget {
             text: 'Sự kiện đã đăng ký',
             style: baseTextStyle,
             onTap: () {
-              // TODO: điều hướng đến screen sự kiện đã đăng ký
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RegisteredEventsScreen()),
+              );
             },
           ),
           const SizedBox(height: 20),

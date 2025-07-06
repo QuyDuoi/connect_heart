@@ -410,6 +410,26 @@ class EventService {
     }
   }
 
+  /// Lấy danh sách event đã đăng ký
+  Future<List<Event>> fetchEventsSubmited() async {
+    try {
+      final response = await dio.get('http://98.84.150.185:8000/api/connect-heart/client/event-registration');
+      final data = response.data;
+      if (data != null &&
+          data['response'] != null &&
+          data['response']['events'] != null) {
+        return (data['response']['events']['data'] as List)
+            .map((eventData) => Event.fromJson(eventData))
+            .toList();
+      } else {
+        throw Exception('Lỗi: Dữ liệu không hợp lệ');
+      }
+    } catch (e) {
+      print('Lỗi fetchNewestEvents: $e');
+      rethrow;
+    }
+  }
+
   /// Tìm kiếm sự kiện theo từ khóa
   Future<List<Event>> searchEvents(String keyword) async {
     try {

@@ -1,3 +1,4 @@
+import 'package:connect_heart/presentation/screens/activity/registered_events_screen%20.dart';
 import 'package:connect_heart/presentation/screens/activity/wishlist_blogs_screen.dart';
 import 'package:connect_heart/presentation/screens/activity/wishlist_events_screen.dart';
 import 'package:connect_heart/presentation/screens/blogs/blog_form.dart';
@@ -59,6 +60,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/form-blog',
         builder: (context, state) => const BlogFormScreen(),
+      ),
+      GoRoute(
+        path: '/event_submit',
+        builder: (context, state) => const RegisteredEventsScreen(),
       ),
 
       // 🔵 Shell route dùng MainScaffold chứa BottomNav

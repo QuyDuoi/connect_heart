@@ -149,17 +149,15 @@ class _BlogItemState extends ConsumerState<BlogItem> {
                 const SizedBox(height: 4),
 
                 // Link "Xem thêm" or "Ẩn bớt"
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isExpanded = !isExpanded; // Toggle expanded state
-                    });
-                  },
-                  child: Text(
-                    isExpanded ? 'Ẩn bớt' : 'Xem thêm',
-                    style: TextStyle(color: Colors.blue.shade600),
+                if (widget.content.length >
+                    1) // hoặc widget.content.length > 100
+                  GestureDetector(
+                    onTap: () => setState(() => isExpanded = !isExpanded),
+                    child: Text(
+                      isExpanded ? 'Ẩn bớt' : 'Xem thêm',
+                      style: TextStyle(color: Colors.blue.shade600),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 8),
 
                 // Action Buttons: like, comment, share

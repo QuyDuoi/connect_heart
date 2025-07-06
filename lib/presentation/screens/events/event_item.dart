@@ -557,28 +557,51 @@ class _EventItemState extends ConsumerState<EventItem> {
   }
 
   Widget _buildDescription() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Mô tả: " + widget.description,
-          textAlign: TextAlign.justify,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 1) Tạo TextPainter để đo độ dài của text với maxLines = 1 (chưa expand)
+        final textSpan = TextSpan(
+          text: "Mô tả: ${widget.description}",
           style: const TextStyle(color: Colors.black87),
-          maxLines: _isDescExpanded ? null : 1,
-          overflow:
-              _isDescExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-        ),
-        GestureDetector(
-          onTap: () => setState(() => _isDescExpanded = !_isDescExpanded),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              _isDescExpanded ? 'Ẩn bớt' : 'Xem thêm',
-              style: const TextStyle(color: Colors.blue, fontSize: 13),
+        );
+        final tp = TextPainter(
+          text: textSpan,
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: constraints.maxWidth);
+
+        // 2) Kiểm tra xem có overflow không
+        final isOverflow = tp.didExceedMaxLines;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Phần mô tả, 1 dòng khi chưa expand
+            Text(
+              "Mô tả: ${widget.description}",
+              textAlign: TextAlign.justify,
+              style: const TextStyle(color: Colors.black87),
+              maxLines: _isDescExpanded ? null : 1,
+              overflow: _isDescExpanded
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
             ),
-          ),
-        ),
-      ],
+
+            // Chỉ hiển thị nút nếu thật sự overflow
+            if (isOverflow)
+              GestureDetector(
+                onTap: () => setState(() => _isDescExpanded = !_isDescExpanded),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    _isDescExpanded ? 'Ẩn bớt' : 'Xem thêm',
+                    style: const TextStyle(color: Colors.blue, fontSize: 13),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

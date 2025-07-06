@@ -22,10 +22,17 @@ class _WishlistBlogsScreenState extends State<WishlistBlogsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const baseTextStyle = TextStyle(fontFamily: 'Merriweather');
     return Scaffold(
       backgroundColor: const Color(0xFFFDF8FF),
       appBar: AppBar(
-        title: const Text('Bài viết yêu thích'),
+        title: Text(
+          'Bài viết yêu thích',
+          style: baseTextStyle.copyWith(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: const Color(0xFFF0F1F5),
         elevation: 1,
         centerTitle: true,

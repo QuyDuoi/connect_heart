@@ -21,6 +21,8 @@ class Event {
   final List<String> thumbnails; // List of image paths for thumbnails
   final Creator creator; // The creator of the event
   final Category? category; // Optional category field
+  int? feedback_count;
+  double? average_rating;
 
   Event({
     required this.id,
@@ -44,7 +46,9 @@ class Event {
     required this.creator,
     required this.category,
     required this.is_wishlist,
-    required this.is_registration
+    required this.is_registration,
+    this.feedback_count,
+    this.average_rating,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -67,7 +71,7 @@ class Event {
           id: createdBy,
           userName: createdBy > 0 ? 'User #$createdBy' : 'Chưa rõ',
           imageProfile: '' // Default image, can be updated if available
-      );
+          );
     }
 
     // Category: optional
@@ -101,6 +105,8 @@ class Event {
       thumbnails: thumbnails,
       creator: creator,
       category: category,
+      feedback_count: json['feedback_count'] as int? ?? 0,
+      average_rating: json['average_rating'] as double? ?? 0,
     );
   }
 }

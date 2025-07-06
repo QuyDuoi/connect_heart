@@ -11,7 +11,8 @@ class WishlistEventsScreen extends ConsumerStatefulWidget {
   const WishlistEventsScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<WishlistEventsScreen> createState() => _WishlistEventsScreenState();
+  ConsumerState<WishlistEventsScreen> createState() =>
+      _WishlistEventsScreenState();
 }
 
 class _WishlistEventsScreenState extends ConsumerState<WishlistEventsScreen> {
@@ -28,11 +29,18 @@ class _WishlistEventsScreenState extends ConsumerState<WishlistEventsScreen> {
     // Lấy user từ Riverpod
     final user = ref.watch(userProvider);
     final role = user?.role ?? 'Tình nguyện viên';
+    const baseTextStyle = TextStyle(fontFamily: 'Merriweather');
 
     return Scaffold(
       backgroundColor: const Color(0xFFFDF8FF),
       appBar: AppBar(
-        title: const Text('Sự kiện yêu thích'),
+        title: Text(
+          'Sự kiện yêu thích',
+          style: baseTextStyle.copyWith(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: const Color(0xFFF0F1F5),
         elevation: 1,
         centerTitle: true,
@@ -48,7 +56,8 @@ class _WishlistEventsScreenState extends ConsumerState<WishlistEventsScreen> {
             } else if (snapshot.hasError) {
               return Center(child: Text('Lỗi: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('Chưa có sự kiện yêu thích nào.'));
+              return const Center(
+                  child: Text('Chưa có sự kiện yêu thích nào.'));
             } else {
               final events = snapshot.data!;
               return ListView.separated(
