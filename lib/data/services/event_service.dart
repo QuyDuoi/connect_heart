@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:connect_heart/data/models/comment.dart';
+import 'package:connect_heart/data/models/feedback_model.dart';
 import 'package:connect_heart/data/models/user.dart';
 import 'package:dio/dio.dart';
 import 'package:connect_heart/data/models/event.dart';
@@ -578,5 +579,25 @@ class EventService {
       print('❌ Lỗi fetchRegisteredUsers: $e');
       rethrow;
     }
+  }
+
+  Future<List<FeedbackModel>> fetchFeedbacks(int eventId) async {
+    final url =
+        'http://98.84.150.185:8000/api/connect-heart/client/feedback/list-feedback-event/$eventId';
+    final resp = await dio.get(
+      url,
+      options: Options(headers: {'Accept': 'application/json'}),
+    );
+
+    if (resp.statusCode != 200) {
+      throw Exception('Lỗi khi tải feedback: ${resp.statusMessage}');
+    }
+
+    final data = resp.data['response']['feedbacks'] as List<dynamic>? 
+      ?? <dynamic>[];
+
+    return data
+        .map((e) => FeedbackModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:connect_heart/data/models/event.dart';
 import 'package:connect_heart/presentation/screens/events/event_form.dart';
+import 'package:connect_heart/presentation/screens/events/feedback_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_heart/data/services/event_service.dart';
@@ -386,8 +387,21 @@ class _EventItemState extends ConsumerState<EventItem> {
                 const SizedBox(height: 4),
                 _buildDescription(),
 
-                _buildRating(),
-
+                if (widget.isEvented) ...[
+                  GestureDetector(
+                    onTap: () {
+                      // Mở modal xem danh sách feedback
+                      showDialog(
+                        context: context,
+                        builder: (_) => FeedbackModal(eventId: widget.id),
+                      );
+                    },
+                    child: _buildRating(),
+                  ),
+                ] else ...[
+                  // Chỉ hiển thị rating mà không cho tap
+                  _buildRating(),
+                ],
                 // Footer actions
                 Row(
                   children: [
