@@ -29,6 +29,7 @@ class EventItem extends ConsumerStatefulWidget {
   final Event? event;
   final String userRole;
   final VoidCallback? onJoined;
+  final bool isEvented;
 
   EventItem({
     super.key,
@@ -52,6 +53,7 @@ class EventItem extends ConsumerStatefulWidget {
     required this.event,
     required this.userRole,
     this.onJoined,
+    required this.isEvented,
   });
 
   @override
@@ -255,6 +257,8 @@ class _EventItemState extends ConsumerState<EventItem> {
                 Text('Địa điểm: ${widget.location}'),
                 const SizedBox(height: 4),
                 _buildDescription(),
+
+                _buildRating(),
 
                 // Footer actions
                 Row(
@@ -602,6 +606,45 @@ class _EventItemState extends ConsumerState<EventItem> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildRating() {
+    final avg = widget.event?.average_rating ?? 0.0;
+    final count = widget.event?.feedback_count ?? 0;
+    // Số sao đầy đủ
+    final fullStars = avg.floor();
+    // Nếu phần thập phân >= 0.5 thì có 1 nửa
+    final hasHalf = (avg - fullStars) >= 0.5;
+    // Còn lại là sao rỗng
+    final emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+
+    List<Widget> stars = [];
+    for (var i = 0; i < fullStars; i++) {
+      stars.add(const Icon(Icons.star, size: 16, color: Colors.amber));
+    }
+    if (hasHalf) {
+      stars.add(const Icon(Icons.star_half, size: 16, color: Colors.amber));
+    }
+    for (var i = 0; i < emptyStars; i++) {
+      stars.add(const Icon(Icons.star_border, size: 16, color: Colors.amber));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          ...stars,
+          const SizedBox(width: 8),
+          Text(
+            '${avg.toStringAsFixed(1)}/5',
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 4),
+          Text('($count đánh giá)',
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        ],
+      ),
     );
   }
 }

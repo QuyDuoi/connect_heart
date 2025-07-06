@@ -85,6 +85,7 @@ class _WishlistEventsScreenState extends ConsumerState<WishlistEventsScreen> {
                     isMyEvent: false,
                     event: e,
                     userRole: role,
+                    isEvented: false,
                   );
                 },
               );

@@ -89,7 +89,7 @@ class _RegisteredEventsScreenState
                   isMyEvent: false,
                   event: e,
                   userRole: role,
-                  // bạn có thể truyền onJoined nếu muốn reload khi huỷ đăng ký
+                  isEvented: true,
                 );
               },
             );

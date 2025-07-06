@@ -195,6 +195,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                         _loadEventsByCategory();
                                       });
                                     },
+                                    isEvented: false,
                                   ),
                                 )
                                 .toList(),

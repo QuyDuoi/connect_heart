@@ -23,6 +23,7 @@ class Event {
   final Category? category; // Optional category field
   int? feedback_count;
   double? average_rating;
+  bool? can_feedback;
 
   Event({
     required this.id,
@@ -49,6 +50,7 @@ class Event {
     required this.is_registration,
     this.feedback_count,
     this.average_rating,
+    this.can_feedback,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -106,7 +108,8 @@ class Event {
       creator: creator,
       category: category,
       feedback_count: json['feedback_count'] as int? ?? 0,
-      average_rating: json['average_rating'] as double? ?? 0,
+      average_rating: (json['average_rating'] as num?)?.toDouble() ?? 0.0,
+      can_feedback: json['can_feedback'] as bool? ?? false,
     );
   }
 }

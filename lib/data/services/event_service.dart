@@ -430,6 +430,28 @@ class EventService {
     }
   }
 
+  Future<void> createFeedback({
+    required int eventId,
+    required int rating,
+    required String content,
+  }) async {
+    final resp = await dio.post(
+      'http://98.84.150.185:8000/api/connect-heart/client/feedback/create-feedback-event',
+      data: {
+        'event_id': eventId,
+        'rating': rating,
+        'content': content,
+      },
+      options: Options(
+        headers: {'Accept': 'application/json'},
+        contentType: Headers.jsonContentType,
+      ),
+    );
+    if (resp.statusCode != 200 && resp.statusCode != 201) {
+      throw Exception('Lỗi khi gửi đánh giá: ${resp.data['message']}');
+    }
+  }
+
   /// Tìm kiếm sự kiện theo từ khóa
   Future<List<Event>> searchEvents(String keyword) async {
     try {
