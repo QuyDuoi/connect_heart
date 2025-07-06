@@ -351,7 +351,7 @@ class EventService {
       final data = response.data;
 
       // 1) Lấy thẳng mảng
-      final rawList = data['response'];
+      final rawList = data['response']['events'];
       if (rawList is! List) {
         throw Exception('Dữ liệu trả về không phải List');
       }

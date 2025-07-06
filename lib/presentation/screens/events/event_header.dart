@@ -49,12 +49,6 @@ class _EventHeaderState extends ConsumerState<EventHeader>
                 icon: Icon(_showSearch ? Icons.close : Icons.search),
                 onPressed: _toggleSearch,
               ),
-              IconButton(
-                icon: const Icon(Icons.filter_alt_outlined),
-                onPressed: () {
-                  // TODO: xử lý filter
-                },
-              ),
             ],
           ),
         ),

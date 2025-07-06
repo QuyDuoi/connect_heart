@@ -17,13 +17,6 @@ class BlogHeader extends ConsumerWidget {
         children: [
           const UserGreeting(),
           const Spacer(),
-          Row(
-            children: const [
-              Icon(Icons.search, size: 24),
-              SizedBox(width: 16),
-              Icon(Icons.filter_alt_outlined, size: 24),
-            ],
-          ),
         ],
       ),
     );

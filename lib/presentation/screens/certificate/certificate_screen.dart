@@ -91,9 +91,6 @@ class _CertificateScreenState extends ConsumerState<CertificateScreen> {
       children: [
         const UserGreeting(),
         const Spacer(),
-        const Icon(Icons.search, size: 24),
-        const SizedBox(width: 16),
-        const Icon(Icons.filter_alt_outlined, size: 24),
       ],
     );
   }

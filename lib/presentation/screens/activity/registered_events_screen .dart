@@ -23,6 +23,10 @@ class _RegisteredEventsScreenState
   void initState() {
     super.initState();
     // ngay khi mount, gọi API lấy danh sách event mà user đã đăng ký
+    _reloadRegistered();
+  }
+
+  void _reloadRegistered() {
     _futureRegistered = EventService().fetchEventsSubmited();
   }
 
@@ -62,7 +66,8 @@ class _RegisteredEventsScreenState
             }
             final events = snapshot.data;
             if (events == null || events.isEmpty) {
-              return const Center(child: Text('Chưa có sự kiện nào được đăng ký'));
+              return const Center(
+                  child: Text('Chưa có sự kiện nào được đăng ký'));
             }
             return ListView.separated(
               itemCount: events.length,
@@ -90,6 +95,12 @@ class _RegisteredEventsScreenState
                   event: e,
                   userRole: role,
                   isEvented: true,
+                  onFeedback: () => {
+                    setState(() {
+                      // reload lại future để FutureBuilder build lại
+                      setState(_reloadRegistered);
+                    })
+                  },
                 );
               },
             );

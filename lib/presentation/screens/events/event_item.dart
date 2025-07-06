@@ -29,6 +29,7 @@ class EventItem extends ConsumerStatefulWidget {
   final Event? event;
   final String userRole;
   final VoidCallback? onJoined;
+  final VoidCallback? onFeedback;
   final bool isEvented;
 
   EventItem({
@@ -54,6 +55,7 @@ class EventItem extends ConsumerStatefulWidget {
     required this.userRole,
     this.onJoined,
     required this.isEvented,
+    this.onFeedback,
   });
 
   @override
@@ -67,6 +69,132 @@ class _EventItemState extends ConsumerState<EventItem> {
   final EventService _eventService = EventService();
   bool _isDescExpanded = false;
   bool _isRegistering = false;
+  int _feedbackRating = 0;
+  final _feedbackCtrl = TextEditingController();
+
+  void _showFeedbackDialog() {
+    // Text controller và state rating
+    int _feedbackRating = 0;
+    final _feedbackCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setState) => Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Close button
+                Align(
+                  alignment: Alignment.topRight,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(ctx),
+                    child:
+                        const Icon(Icons.close, size: 24, color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Star rating row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (i) {
+                    final filled = i < _feedbackRating;
+                    return IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        filled ? Icons.star : Icons.star_border,
+                        size: 32,
+                        color: Colors.amber,
+                      ),
+                      onPressed: () {
+                        setState(() => _feedbackRating = i + 1);
+                      },
+                    );
+                  }),
+                ),
+                const SizedBox(height: 16),
+                // Nội dung
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Nội dung',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: _feedbackCtrl,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập nội dung đánh giá',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Button xác nhận
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_feedbackRating == 0 ||
+                          _feedbackCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Vui lòng chọn sao và nhập nội dung đánh giá')),
+                        );
+                        return;
+                      }
+                      Navigator.pop(ctx);
+
+                      try {
+                        await _eventService.createFeedback(
+                          eventId: widget.id,
+                          rating: _feedbackRating,
+                          content: _feedbackCtrl.text.trim(),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Cảm ơn bạn đã gửi đánh giá!')),
+                        );
+                        widget.onFeedback?.call();
+                        // nếu cần refresh UI có thể gọi setState hoặc callback ở đây
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Lỗi: $e')),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[800],
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text(
+                      'Xác nhận',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -364,24 +492,50 @@ class _EventItemState extends ConsumerState<EventItem> {
                     const Spacer(),
 
                     // Tham gia button
-                    ElevatedButton(
-                      onPressed: _handleJoin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        minimumSize: const Size(80, 32),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    if (widget.isEvented) ...[
+                      ElevatedButton(
+                        onPressed: widget.event?.can_feedback == true
+                            ? _showFeedbackDialog
+                            : () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Bạn chưa đủ điều kiện để đánh giá')),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue, // luôn nền xanh
+                          foregroundColor: // text trắng nếu enable, xám nếu disable
+                              widget.event?.can_feedback == true
+                                  ? Colors.white
+                                  : Colors.grey.shade300,
+                          minimumSize: const Size(120, 40),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Đánh giá'),
+                      ),
+                    ] else ...[
+                      ElevatedButton(
+                        onPressed: _handleJoin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          minimumSize: const Size(80, 32),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          widget.is_registration ? 'Đã đăng ký' : 'Tham gia',
+                          style: TextStyle(
+                            color: widget.is_registration
+                                ? Colors.black
+                                : Colors.white,
+                          ),
                         ),
                       ),
-                      child: Text(
-                        widget.is_registration ? 'Đã đăng ký' : 'Tham gia',
-                        style: TextStyle(
-                          color: widget.is_registration
-                              ? Colors.black
-                              : Colors.white,
-                        ),
-                      ),
-                    ),
+                    ]
                   ],
                 ),
               ],
