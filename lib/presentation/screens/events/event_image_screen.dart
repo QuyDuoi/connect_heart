@@ -3,13 +3,21 @@ import 'package:connect_heart/data/models/event.dart';
 import 'package:connect_heart/data/services/event_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class EventImageScreen extends StatefulWidget {
   final Event event;
-  const EventImageScreen({super.key, required this.event});
+  final String? categoryName;
+  const EventImageScreen({super.key, required this.event, this.categoryName});
 
   @override
   State<EventImageScreen> createState() => _EventImageScreenState();
+}
+
+String _formatDate(String isoString) {
+  final dt = DateTime.tryParse(isoString);
+  if (dt == null) return isoString;
+  return DateFormat('dd/MM/yyyy').format(dt);
 }
 
 class _EventImageScreenState extends State<EventImageScreen> {
@@ -56,6 +64,8 @@ class _EventImageScreenState extends State<EventImageScreen> {
   @override
   Widget build(BuildContext context) {
     final e = widget.event;
+    final start = _formatDate(e.dateStart);
+  final end = _formatDate(e.dateEnd);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thêm ảnh sự kiện'),
@@ -78,11 +88,11 @@ class _EventImageScreenState extends State<EventImageScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Lĩnh vực: ${e.category?.categoryName}'),
+                  Text('Lĩnh vực: ${widget.categoryName}'),
                   const SizedBox(height: 4),
                   Text(e.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text('Thời gian: ${e.dateStart} - ${e.dateEnd}'),
+                  Text('Thời gian: $start  –  $end'),
                   const SizedBox(height: 4),
                   Text('Địa điểm: ${e.location}'),
                 ],

@@ -352,7 +352,13 @@ class _EventFormScreenState extends State<EventFormScreen> {
                         Navigator.of(context, rootNavigator: true)
                             .pop(); // tắt loader
                         Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => EventImageScreen(event: newEvent),
+                          builder: (_) => EventImageScreen(
+                            event: newEvent,
+                            categoryName: categories.firstWhere(
+                              (c) => c['id'] == categoryId,
+                              orElse: () => {'name': 'Không rõ'},
+                            )['name'] as String,
+                          ),
                         ));
                       }
                     } catch (e) {
